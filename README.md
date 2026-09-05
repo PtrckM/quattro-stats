@@ -4,6 +4,14 @@ An [Omarchy](https://omarchy.org/) (Quattro) plugin: an iStat Menus-style
 system monitor for the bar. A compact, fully customizable pill lives in the
 bar; clicking it opens a full dashboard.
 
+<p align="center">
+  <img src="screenshots/quattro1.png" alt="Quattro Stats dashboard, all cards collapsed" width="45%" />
+  <img src="screenshots/quattro2.png" alt="Quattro Stats dashboard, Network and Settings expanded" width="45%" />
+</p>
+<p align="center">
+  <img src="screenshots/quattro3.png" alt="Quattro Stats bar pill in gauge style" />
+</p>
+
 ## Bar pill
 
 Pick exactly what shows in the bar, and in what order, from the in-popup
@@ -118,6 +126,8 @@ ptrck.quattro-stats/
 ├── manifest.json          plugin manifest (kinds: service, bar-widget)
 ├── README.md
 ├── LICENSE
+├── preview.png            marketplace preview image
+├── screenshots/           README screenshots
 ├── qml/
 │   ├── Panel.qml          bar-widget entry point: Ui.Panel root (pill + dashboard + settings)
 │   ├── Service.qml        service entry point (poller process, shared state, history, alerts)
