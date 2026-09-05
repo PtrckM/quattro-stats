@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "ptrck.quattro-stats",
+  "name": "Quattro Stats",
+  "version": "1.0.0",
+  "author": "ptrck",
+  "license": "MIT",
+  "description": "iStat-style system monitor: CPU/GPU/MEM and disk/network throughput in the bar, a full dashboard (CPU, memory, storage, network, temps & fans, battery, uptime, load, ping) in the popup.",
+  "kinds": ["service", "bar-widget"],
+  "keepLoaded": true,
+  "entryPoints": {
+    "barWidget": "qml/Panel.qml",
+    "service": "qml/Service.qml"
+  },
+  "barWidget": {
+    "displayName": "Quattro Stats",
+    "description": "CPU / GPU / memory / disk / network at a glance, click for the full dashboard.",
+    "category": "System",
+    "aliases": ["stats", "istat", "sysmon", "quattro-stats"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "refreshIntervalMs": 2000,
+      "pingHost": "1.1.1.1",
+      "historyLimit": 60,
+      "barItems": ["cpu", "gpu", "mem", "up", "down"],
+      "panelSections": ["cpu", "gpu", "memory", "storage", "network", "fans", "battery", "uptime", "ping"]
+    },
+    "schema": [
+      {
+        "key": "barItems",
+        "type": "multiselect",
+        "label": "Bar stats",
+        "description": "Which stats appear in the bar pill.",
+        "noSelectionText": "None",
+        "options": [
+          { "value": "cpu", "label": "CPU %" },
+          { "value": "gpu", "label": "GPU %" },
+          { "value": "mem", "label": "Memory %" },
+          { "value": "storage", "label": "Storage used %" },
+          { "value": "battery", "label": "Battery (icon + time + %)" },
+          { "value": "fans", "label": "Fan speed (RPM)" },
+          { "value": "uptime", "label": "Load average" },
+          { "value": "io", "label": "Disk I/O activity (read/write dots)" },
+          { "value": "up", "label": "Network upload activity (dot)" },
+          { "value": "down", "label": "Network download activity (dot)" }
+        ]
+      },
+      {
+        "key": "usageStyle",
+        "type": "enum",
+        "label": "CPU/GPU/Memory/Storage style",
+        "options": ["Percentage text", "Usage gauge (bar)"],
+        "defaultValue": "Percentage text",
+        "description": "How CPU, GPU, Memory, and Storage render in the bar pill — a number, or a small vertical usage bar with the label to its left."
+      },
+      {
+        "key": "panelSections",
+        "type": "multiselect",
+        "label": "Dashboard sections",
+        "description": "Which cards appear in the popup dashboard.",
+        "noSelectionText": "None",
+        "options": [
+          { "value": "cpu", "label": "CPU" },
+          { "value": "gpu", "label": "GPU" },
+          { "value": "memory", "label": "Memory" },
+          { "value": "storage", "label": "Storage" },
+          { "value": "network", "label": "Network" },
+          { "value": "fans", "label": "Fans" },
+          { "value": "battery", "label": "Battery" },
+          { "value": "uptime", "label": "Uptime & Load" },
+          { "value": "ping", "label": "Ping" }
+        ]
+      }
+    ]
+  }
+}
