@@ -53,6 +53,7 @@ Item {
   Row {
     id: row
     anchors.centerIn: parent
+    height: parent.height
     spacing: Style.space(4)
 
     Repeater {
@@ -330,7 +331,7 @@ Item {
 
       delegate: Text {
         required property int index
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenter: vlabel.horizontalCenter
         text: vlabel.label.charAt(index)
         color: vlabel.textColor
         font.family: root.fontFamily

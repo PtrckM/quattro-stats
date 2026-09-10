@@ -38,6 +38,52 @@ Item {
   function acquire() { root.consumers++ }
   function release() { root.consumers = Math.max(0, root.consumers - 1) }
 
+  // ---- Durable widget settings (barItems / panelSections / usageStyle).
+  // These are also written to the widget's inline shell.json entry via
+  // persistPluginSetting (so any generic settings UI stays in sync), but
+  // that entry does not survive `omarchy plugin disable` — the shell's own
+  // PluginRegistry drops a bar-widget's whole layout entry on disable and
+  // rebuilds it bare on the next enable. Keeping our own copy here means a
+  // disable/enable cycle (or a plugin update) doesn't silently reset the
+  // user's choices back to defaults.
+  readonly property string stateDir: Quickshell.env("HOME") + "/.local/state/ptrck.quattro-stats"
+  readonly property string statePath: stateDir + "/settings.json"
+  property var persistedSettings: ({})
+  property bool persistedSettingsReady: false
+
+  function loadPersistedSettings(raw) {
+    try {
+      var parsed = JSON.parse(String(raw || "{}"))
+      if (parsed && typeof parsed === "object") root.persistedSettings = parsed
+    } catch (e) {
+      // no valid state yet — start clean
+    }
+    root.persistedSettingsReady = true
+  }
+
+  function savePersistedSetting(name, value) {
+    var next = {}
+    for (var k in root.persistedSettings) next[k] = root.persistedSettings[k]
+    next[name] = value
+    root.persistedSettings = next
+    settingsFile.setText(JSON.stringify(next, null, 2) + "\n")
+  }
+
+  Process {
+    command: ["mkdir", "-p", root.stateDir]
+    running: true
+    onExited: settingsFile.reload()
+  }
+
+  FileView {
+    id: settingsFile
+    path: root.statePath
+    watchChanges: false
+    printErrors: false
+    onLoaded: root.loadPersistedSettings(text())
+    onLoadFailed: root.persistedSettingsReady = true
+  }
+
   // ---- High-usage notifications. Fires once when a metric crosses above
   // its threshold, and resets (so it can fire again) only once the metric
   // drops a few points back below it — avoids spamming a notification every

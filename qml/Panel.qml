@@ -122,19 +122,28 @@ Panel {
     onTriggered: root.tryClaimService()
   }
 
-  // ---- Settings: which stats show in the bar pill / dashboard. Configured
-  // through the plugin's settings UI (manifest schema: barItems /
-  // panelSections); both default to "everything" when unset.
+  // ---- Settings: which stats show in the bar pill / dashboard. The
+  // durable copy in the service's own state file (see Service.qml) wins
+  // over the widget's inline shell.json entry, since the shell's own
+  // disable/enable cycle can wipe that entry back to bare defaults.
   readonly property var defaultBarItems: ["cpu", "gpu", "mem", "up", "down"]
   readonly property var defaultPanelSections: ["cpu", "gpu", "memory", "storage", "network", "fans", "battery", "uptime", "ping"]
-  readonly property var barItems: root.setting("barItems", root.defaultBarItems)
-  readonly property string usageStyleValue: root.setting("usageStyle", "Percentage text")
+
+  function persistedSetting(name, fallback) {
+    if (root.service && root.service.persistedSettings
+        && root.service.persistedSettings[name] !== undefined)
+      return root.service.persistedSettings[name]
+    return root.setting(name, fallback)
+  }
+
+  readonly property var barItems: root.persistedSetting("barItems", root.defaultBarItems)
+  readonly property string usageStyleValue: root.persistedSetting("usageStyle", "Percentage text")
   readonly property bool useGaugeStyle: root.usageStyleValue === "Usage gauge (bar)"
 
   function setUsageStyle(value) {
     root.persistPluginSetting("usageStyle", value)
   }
-  readonly property var panelSections: root.setting("panelSections", root.defaultPanelSections)
+  readonly property var panelSections: root.persistedSetting("panelSections", root.defaultPanelSections)
 
   function barItemEnabled(key) {
     return Array.isArray(root.barItems) && root.barItems.indexOf(key) !== -1
@@ -169,10 +178,15 @@ Panel {
     { key: "ping", label: "Ping" }
   ]
 
-  // Writes straight to this widget's inline shell.json entry (same mechanism
-  // the built-in Argus plugin uses for its per-metric toggles) — bypasses
-  // `omarchy bar set --json`, which mishandles array values.
+  // Writes to the service's durable state file (survives disable/enable —
+  // see Service.qml) and, best-effort, to this widget's inline shell.json
+  // entry too (same mechanism the built-in Argus plugin uses for its
+  // per-metric toggles, and bypasses `omarchy bar set --json`, which
+  // mishandles array values) so any generic settings UI stays in sync.
   function persistPluginSetting(name, value) {
+    if (root.service && typeof root.service.savePersistedSetting === "function")
+      root.service.savePersistedSetting(name, value)
+
     if (!root.bar || !root.bar.shell || typeof root.bar.shell.updateEntryInline !== "function") return
     var entry = { id: root.moduleName }
     for (var key in root.settings) if (key !== "id" && key !== name) entry[key] = root.settings[key]
