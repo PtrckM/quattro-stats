@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import qs.Commons
 
 // Compact multi-stat bar pill: a row of small label/value segments (CPU,
@@ -50,7 +51,7 @@ Item {
       registeredBar.unregisterClickTarget(root)
   }
 
-  Row {
+  RowLayout {
     id: row
     anchors.centerIn: parent
     height: parent.height
@@ -66,11 +67,12 @@ Item {
         readonly property bool isBattery: modelData.kind === "battery"
         readonly property bool isGauge: modelData.kind === "gauge"
 
-        // Row (the outer positioner) top-aligns children by default; anchor
-        // each segment to its vertical center instead so a short segment
-        // (e.g. two dots) doesn't sit stuck to the top while a taller one
-        // (e.g. CPU's label+value) defines the row's height.
-        anchors.verticalCenter: parent.verticalCenter
+        // Plain Row/Column silently ignore anchors on their direct children
+        // for the axis they manage — Layout.alignment is what actually
+        // works, so a short segment (e.g. two dots) centers vertically
+        // instead of sitting stuck to the top while a taller one (e.g.
+        // CPU's label+value) defines the row's height.
+        Layout.alignment: Qt.AlignVCenter
 
         implicitWidth: isStack ? stackColumn.implicitWidth
           : isBattery ? batteryRow.implicitWidth
