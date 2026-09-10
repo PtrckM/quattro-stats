@@ -18,12 +18,11 @@ Panel {
   ipcTarget: ""
   manageIpc: false
 
-  readonly property string serviceId: "ptrck.quattro-stats"
-  readonly property var service: bar && bar.shell
-    && typeof bar.shell.serviceFor === "function"
-    ? bar.shell.serviceFor(serviceId) : null
+  // Instantiated directly below (not via the shell's service registry —
+  // see Service.qml for why).
+  readonly property alias service: localService
 
-  readonly property var stats: service ? service.stats : ({})
+  readonly property var stats: service.stats
   readonly property var cpu: stats.cpu || {}
   readonly property var gpu: stats.gpu || null
   readonly property var memory: stats.memory || {}
@@ -43,10 +42,10 @@ Panel {
   readonly property var ping: stats.ping || {}
   readonly property var uptimeSeconds: stats.uptimeSeconds !== undefined ? stats.uptimeSeconds : null
 
-  readonly property var cpuHistory: service ? service.cpuHistory : []
-  readonly property var netHistory: service ? service.netHistory : []
-  readonly property var diskHistory: service ? service.diskHistory : []
-  readonly property string collectorError: service ? service.error : ""
+  readonly property var cpuHistory: service.cpuHistory
+  readonly property var netHistory: service.netHistory
+  readonly property var diskHistory: service.diskHistory
+  readonly property string collectorError: service.error
 
   // ---- Theming: prefer the bar's own tokens (Shibumi VisualTokens) so
   // per-widget color fills configured in Shibumi settings keep working;
@@ -89,37 +88,13 @@ Panel {
     root.expandedSections = next
   }
 
-  // ---- Service acquisition. The service is ensured by the shell at
-  // startup, but the widget can mount before it exists; retry a short
-  // window.
-  property bool serviceClaimed: false
-  property int serviceTries: 0
-
-  function tryClaimService() {
-    if (root.service && !root.serviceClaimed) {
-      if (typeof root.service.acquire === "function") root.service.acquire()
-      root.serviceClaimed = true
-      root.serviceTries = 0
-      serviceRetry.stop()
-    } else if (!root.service && root.serviceTries < 30) {
-      root.serviceTries++
-      serviceRetry.restart()
-    }
-  }
-
-  onServiceChanged: tryClaimService()
-  Component.onCompleted: tryClaimService()
-  Component.onDestruction: {
-    if (root.serviceClaimed && root.service
-        && typeof root.service.release === "function")
-      root.service.release()
-    serviceRetry.stop()
-  }
-
-  Timer {
-    id: serviceRetry
-    interval: 500
-    onTriggered: root.tryClaimService()
+  // ---- Poller. A direct child, not a shell-registered "service" — see
+  // Service.qml for why. allowMultiple is false for this widget, so there
+  // is never more than one of these anyway.
+  Service {
+    id: localService
+    Component.onCompleted: acquire()
+    Component.onDestruction: release()
   }
 
   // ---- Settings: which stats show in the bar pill / dashboard. The

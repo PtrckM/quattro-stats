@@ -6,11 +6,9 @@
   "author": "ptrck",
   "license": "MIT",
   "description": "iStat-style system monitor: CPU/GPU/MEM and disk/network throughput in the bar, a full dashboard (CPU, memory, storage, network, temps & fans, battery, uptime, load, ping) in the popup.",
-  "kinds": ["service", "bar-widget"],
-  "keepLoaded": true,
+  "kinds": ["bar-widget"],
   "entryPoints": {
-    "barWidget": "qml/Panel.qml",
-    "service": "qml/Service.qml"
+    "barWidget": "qml/Panel.qml"
   },
   "barWidget": {
     "displayName": "Quattro Stats",

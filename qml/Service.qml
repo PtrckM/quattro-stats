@@ -5,21 +5,21 @@ import Quickshell
 import Quickshell.Io
 import "QuattroFormat.js" as Format
 
-// One process-wide poller shared by every Quattro Stats widget instance.
-// Widgets call acquire() while mounted and release() when destroyed, so the
-// collector only runs while something on screen is reading it.
+// Poller instantiated directly as a child of Panel.qml (not registered as a
+// separate "service" plugin kind — the shell's service registry proved
+// fragile: it strips manifest.__sourceDir for third-party plugins, and its
+// serviceFor() lookup never resolved for this plugin after an Omarchy
+// update). Since the widget never allows more than one instance anyway,
+// there is nothing a shared service singleton would buy us here.
 Item {
   id: root
 
-  property string omarchyPath: ""
-  property var shell: null
-  property var manifest: null
-
-  readonly property int contractVersion: 1
-  readonly property bool ready: true
-
-  readonly property string scriptPath: manifest && manifest.__sourceDir
-    ? manifest.__sourceDir + "/scripts/quattro-stats.sh" : ""
+  // Self-locating: resolve the script relative to this QML file's own
+  // location rather than depending on any manifest metadata.
+  readonly property string scriptPath: {
+    var url = Qt.resolvedUrl("../scripts/quattro-stats.sh")
+    return String(url).replace(/^file:\/\//, "")
+  }
 
   property int refreshIntervalMs: 2000
   property int historyLimit: 60
@@ -123,8 +123,6 @@ Item {
     }
     pollProc.running = true
   }
-
-  onManifestChanged: Qt.callLater(root.refresh)
 
   Process {
     id: pollProc
